@@ -3,15 +3,21 @@ CLI Tools - Command Line Interface building tools
 
 Example usage::
 
+    from clitools import CliApp
+
     cli = CliApp()
 
     @cli.command
     def hello(args):
         print "Hello, world!"
 
-    @cli.command(args=['--name'])
+    @cli.command
+    @cli.parser_arg('--name')
     def hello2(args):
-        print "Hello, {}!".format(args.name)
+        print "Hello, {0}!".format(args.name)
+
+    if __name__ == '__main__':
+        cli.run_from_command_line()
 """
 
 import argparse

@@ -25,7 +25,7 @@ def test_simple_script(tmpdir):
     @cli.command
     @cli.parser_arg('--name')
     def hello2(args):
-        print "Hello, {}!".format(args.name)
+        print "Hello, {0}!".format(args.name)
 
     @cli.command(args=[
         (('--arg1', ), {}),
