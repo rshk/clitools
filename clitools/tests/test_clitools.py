@@ -10,22 +10,23 @@ import textwrap
 def test_simple_script(tmpdir):
     ## Save the script in a temporary file
     script = textwrap.dedent("""\
+    from __future__ import print_function
     from clitools import CliApp
 
     cli = CliApp()
 
     @cli.command
     def hello(args):
-        print "Hello, world!"
+        print("Hello, world!")
 
     @cli.command
     def command_example(args):
-        print "Example"
+        print("Example")
 
     @cli.command
     @cli.parser_arg('--name')
     def hello2(args):
-        print "Hello, {0}!".format(args.name)
+        print("Hello, {0}!".format(args.name))
 
     @cli.command(args=[
         (('--arg1', ), {}),
@@ -33,9 +34,9 @@ def test_simple_script(tmpdir):
     ])
     def example2(args):
         if args.arg1:
-            print args.arg1
+            print(args.arg1)
         if args.arg2:
-            print ' '.join(args.arg2)
+            print(' '.join(args.arg2))
 
     def akw(*a, **kw):
         return (a, kw)
@@ -46,9 +47,9 @@ def test_simple_script(tmpdir):
     ])
     def example3(args):
         if args.arg1:
-            print args.arg1
+            print(args.arg1)
         if args.arg2:
-            print ' '.join(args.arg2)
+            print(' '.join(args.arg2))
 
     if __name__ == '__main__':
         cli.run_from_command_line()
@@ -67,17 +68,17 @@ def test_simple_script(tmpdir):
         assert prog_output == output
 
     ## Check the program output
-    check_command(['hello'], "Hello, world!\n")
-    check_command(['hello2', '--name=spam'], "Hello, spam!\n")
-    check_command(['hello2', '--name', 'egg'], "Hello, egg!\n")
-    check_command(['example'], "Example\n")
-    check_command(['example2'], "")
-    check_command(['example2', '--arg1=Hello'], "Hello\n")
+    check_command(['hello'], b"Hello, world!\n")
+    check_command(['hello2', '--name=spam'], b"Hello, spam!\n")
+    check_command(['hello2', '--name', 'egg'], b"Hello, egg!\n")
+    check_command(['example'], b"Example\n")
+    check_command(['example2'], b"")
+    check_command(['example2', '--arg1=Hello'], b"Hello\n")
     check_command(['example2', '--arg1=Hello', '--arg1=World'],
-                  "World\n")
+                  b"World\n")
     check_command(['example2', '--arg2=Hello', '--arg2=World'],
-                  "Hello World\n")
+                  b"Hello World\n")
     check_command(['example2', '--arg1=AAAA', '--arg2=Hello', '--arg2=World'],
-                  "AAAA\nHello World\n")
+                  b"AAAA\nHello World\n")
     check_command(['example3', '--arg1=AAAA', '--arg2=Hello', '--arg2=World'],
-                  "AAAA\nHello World\n")
+                  b"AAAA\nHello World\n")

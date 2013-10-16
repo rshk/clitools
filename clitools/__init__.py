@@ -9,12 +9,12 @@ Example usage::
 
     @cli.command
     def hello(args):
-        print "Hello, world!"
+        print("Hello, world!")
 
     @cli.command
     @cli.parser_arg('--name')
     def hello2(args):
-        print "Hello, {0}!".format(args.name)
+        print("Hello, {0}!".format(args.name))
 
     if __name__ == '__main__':
         cli.run_from_command_line()
