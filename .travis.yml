@@ -1,0 +1,18 @@
+language: python
+
+branches:
+  except:
+    - gh-pages
+
+python:
+  - "2.7"
+
+env:
+  matrix:
+    - TOXENV=py26
+    - TOXENV=py27
+
+install:
+  - pip install tox
+
+script: tox
