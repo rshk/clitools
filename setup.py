@@ -3,11 +3,12 @@ from pkg_resources import normalize_path
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-version = '0.1-alpha'
+version = '0.2'
 
 install_requires = []
 
 if sys.version_info < (2, 7):
+    ## In Python <2.7 argparse is not in standard library
     install_requires.append('argparse')
 
 tests_require = [
@@ -29,7 +30,7 @@ class PyTest(TestCommand):
             '--cov=clitools',
             '--cov-report=term-missing',
             '--pep8',
-            '.']
+            'clitools']
         self.test_suite = True
 
     def run_tests(self):
@@ -76,7 +77,12 @@ setup(
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Development Status :: 3 - Alpha",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: Implementation :: PyPy",
     ],
     package_data={'': ['README.md', 'LICENSE']},
     cmdclass={'test': PyTest},
