@@ -17,10 +17,14 @@ def hello(args):
     print "Hello, world!"
 
 @cli.command
-@cli.parser_arg('--name')
+@cli.arg('--name')
+@cli.flag('--bye')
 def hello2(args):
-    print "Hello, {0}!".format(args.name)
+	if args.bye:
+		print "Bye, {0}!".format(args.name)
+	else:
+		print "Hello, {0}!".format(args.name)
 
 if __name__ == '__main__':
-    cli.run_from_command_line()
+    cli.run()
 ```
