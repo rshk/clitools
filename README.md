@@ -66,3 +66,7 @@ Hello, world!
 % ./simple_app.py hello2 --name=world --bye
 Bye, world!
 ```
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/rshk/clitools/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
