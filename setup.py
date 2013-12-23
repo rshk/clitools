@@ -3,7 +3,7 @@ from pkg_resources import normalize_path
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-version = '0.2'
+version = '0.3a'
 
 install_requires = []
 
