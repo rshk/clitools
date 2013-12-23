@@ -1,0 +1,182 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Usage documentation &mdash; clitools 0.3a documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:'./',
+        VERSION:'0.3a',
+        COLLAPSE_INDEX:false,
+        FILE_SUFFIX:'.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+    <link rel="top" title="clitools 0.3a documentation" href="index.html"/>
+        <link rel="prev" title="Welcome to clitools’s documentation!" href="index.html"/> 
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="icon icon-home"> clitools</a>
+        <form class="wy-form" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search docs" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Usage documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#registering-a-command">Registering a command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running">Running</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top">
+        <i data-toggle="wy-nav-top" class="icon icon-reorder"></i>
+        <a href="/">clitools</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <ul class="wy-breadcrumbs">
+  <li><a href="index.html">Docs</a> &raquo;</li>
+  <li><a href="">Usage documentation</a></li>
+  
+</ul>
+<hr/>
+
+          
+  <div class="section" id="usage-documentation">
+<h1>Usage documentation<a class="headerlink" href="#usage-documentation" title="Permalink to this headline">¶</a></h1>
+<p>First, you need to instantiate a <tt class="docutils literal"><span class="pre">CliApp</span></tt> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">clitools</span> <span class="kn">import</span> <span class="n">CliApp</span>
+<span class="n">cli</span> <span class="o">=</span> <span class="n">CliApp</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="registering-a-command">
+<h2>Registering a command<a class="headerlink" href="#registering-a-command" title="Permalink to this headline">¶</a></h2>
+<p>Each command is associated to a function accepting the parser arguments
+as its only argument.</p>
+<p>To register new commands, you can simply use the <tt class="docutils literal"><span class="pre">command</span></tt> decorator.</p>
+<p>In order to prevent conflicts with builtin functions / reserved keywords,
+you can add the <tt class="docutils literal"><span class="pre">command_</span></tt> prefix to function names. It will be stripped
+when generating command name.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@cli.command</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello, world!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@cli.command</span>
+<span class="k">def</span> <span class="nf">command_hello</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello, world!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="adding-arguments-to-commands">
+<h3>Adding arguments to commands<a class="headerlink" href="#adding-arguments-to-commands" title="Permalink to this headline">¶</a></h3>
+<p>Simply use the <tt class="docutils literal"><span class="pre">.arg()</span></tt> decorator, which accepts the same arguments
+as argparse subparser <tt class="docutils literal"><span class="pre">.add_argument()</span></tt> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@cli.command</span>
+<span class="nd">@cli.arg</span><span class="p">(</span><span class="s">&#39;--name&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello, {0}!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>You can also use the <tt class="docutils literal"><span class="pre">.flag()</span></tt> decorator, that simply has some different
+default values (action=&#8217;store_true&#8217;, default=False).</p>
+</div>
+</div>
+<div class="section" id="running">
+<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
+<p>Finally, to run your application:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">cli</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          <footer>
+  
+    <div class="rst-footer-buttons">
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to clitools’s documentation!"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <p>
+      &copy; Copyright 2013, Samuele Santi.
+  </p>
+
+  <a href="https://www.github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="http://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+</body>
+</html>
