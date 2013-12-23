@@ -3,6 +3,7 @@
 Tools for quickly creating Command Line Interface scripts with Python.
 
 [![Build Status](https://travis-ci.org/rshk/clitools.png)](https://travis-ci.org/rshk/clitools)
+[![Coverage Status](https://coveralls.io/repos/rshk/clitools/badge.png)](https://coveralls.io/r/rshk/clitools)
 
 
 ## Example
