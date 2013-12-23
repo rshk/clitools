@@ -73,7 +73,7 @@ setup(
     long_description='Utilities for building CLI scripts in Python',
     install_requires=install_requires,
     tests_require=tests_require,
-    test_suite='datapub.tests',
+    test_suite='clitools.tests',
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Development Status :: 3 - Alpha",
