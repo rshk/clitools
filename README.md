@@ -10,6 +10,38 @@ Tools for quickly creating Command Line Interface scripts with Python.
 [Package documentation](http://rshk.github.io/clitools/)
 
 
+## New architecture
+
+This is a complete rethinking of the whole thing, in order to make things
+even more fun to use!
+
+
+### Defining commands
+
+```python
+from clitools import CliApp
+
+cli = CliApp()
+
+@cli.command
+def hello(name, bye=False):
+	greeting = 'Bye' if bye else 'Hello'
+    print("{0}, {1".format(greeting, name))
+
+
+>>> cli.run(['--name', 'world'])
+Hello, world!
+
+>>> cli.run(['--name', 'world', '--bye'])
+Bye, world!
+```
+
+
+
+
+
+
+
 ## Example
 
 ```python
