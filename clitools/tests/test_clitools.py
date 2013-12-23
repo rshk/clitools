@@ -57,27 +57,31 @@ def gen_test_case(args, out=None, err=None, success=True):
 
     gen_test_case(['non_existent_command'], success=False),
 ])
-def test_simple_script_internal(sample_script, args, result):
-    out, err, success = result
+def test_simple_script_internal(sample_script, args, result, capsys):
+    exp_out, exp_err, exp_success = result
 
-    dummy_stdout = BytesIO()
-    dummy_stderr = BytesIO()
+    # dummy_stdout = BytesIO()
+    # dummy_stderr = BytesIO()
 
-    with patch('sys.stdout', dummy_stdout), \
-            patch('sys.stderr', dummy_stderr):
+    # with patch('sys.stdout', dummy_stdout), \
+    #         patch('sys.stderr', dummy_stderr):
 
-        return_code = 0
-        try:
-            sample_script.run(args)
+    return_code = 0
+    try:
+        sample_script.run(args)
 
-        except SystemExit, e:
-            return_code = e.code
+    except SystemExit, e:
+        ## Record exit code on failure
+        return_code = e.code
 
-        if out is not None:
-            assert dummy_stdout.getvalue() == out
-        if err is not None:
-            assert dummy_stderr.getvalue() == err
-        if success:
-            assert return_code == 0
-        else:
-            assert return_code != 0
+    stdout, stderr = capsys.readouterr()
+
+    if exp_out is not None:
+        assert stdout == exp_out
+    if exp_err is not None:
+        assert stderr == exp_err
+
+    if exp_success:
+        assert return_code == 0
+    else:
+        assert return_code != 0
