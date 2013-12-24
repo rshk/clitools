@@ -27,18 +27,18 @@ import os
 
 logger = logging.getLogger('clitools')
 
-LOGFILE = os.environ.get('LOGFILE')
-if LOGFILE is not None:
-    handler = logging.StreamHandler(open(LOGFILE, 'w'))
-    formatter = logging.Formatter(
-        fmt='%(levelname)s [in %(module)s:%(funcName)s '
-        '%(filename)s:%(lineno)s] '
-        '%(message)s')
-    handler.setFormatter(formatter)
-    handler.setLevel(logging.DEBUG)
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
-    logger.info('--- Logging start ---')
+# LOGFILE = os.environ.get('LOGFILE')
+# if LOGFILE is not None:
+#     handler = logging.StreamHandler(open(LOGFILE, 'w'))
+#     formatter = logging.Formatter(
+#         fmt='%(levelname)s [in %(module)s:%(funcName)s '
+#         '%(filename)s:%(lineno)s] '
+#         '%(message)s')
+#     handler.setFormatter(formatter)
+#     handler.setLevel(logging.DEBUG)
+#     logger.setLevel(logging.DEBUG)
+#     logger.addHandler(handler)
+#     logger.info('--- Logging start ---')
 
 
 class Command(object):
@@ -63,10 +63,6 @@ class Command(object):
             kwargs[argname] = getattr(parsed_args, argname, default)
 
         return self.func(*args, **kwargs)
-
-    def __getattr__(self, name):
-        ## Let's fake to be the wrapped function
-        return getattr(self.func, name)
 
 
 class CliApp(object):
@@ -107,18 +103,17 @@ class CliApp(object):
         (yet)! They are just stripped & ignored, ATM..
         """
 
-        ## Read keyword arguments
-        name = kwargs.get('name')
-        help_text = kwargs.get('help')
-
         func_info = self._analyze_function(func)
 
+        ## Read keyword arguments
+        name = kwargs.get('name')
         if name is None:
             name = func_info['name']
             ## Strip the command_ prefix from function name
             if name.startswith('command_'):
                 name = name[len('command_'):]
 
+        help_text = kwargs.get('help')
         if help_text is None:
             help_text = func_info['help_text']
 
@@ -131,18 +126,22 @@ class CliApp(object):
             subparser.add_argument(argname)
 
         ## Process optional keyword arguments
+        func_new_defaults = []
         for argname, argvalue in func_info['keyword_args'].iteritems():
             if isinstance(argvalue, self.arg):
                 ## We already have args / kwargs for this argument
                 a = (['--' + argname] + list(argvalue.args))
                 kw = argvalue.kwargs
+                func_new_defaults.append(kw.get('default'))
 
             else:
                 ## We need to guess args / kwargs from default value
                 a, kw = self._arg_from_free_value(argname, argvalue)
+                func_new_defaults.append(argvalue)  # just use the old one
 
             logger.debug('New argument: {0!r} {1!r}'.format(a, kwargs))
-            subparser.add_argument(*a, **kwargs)
+            subparser.add_argument(*a, **kw)
+        func.func_defaults = tuple(func_new_defaults)
 
         ## todo: replace defaults on the original function, to strip
         ##       any instance of ``self.arg``?
@@ -151,6 +150,8 @@ class CliApp(object):
 
         ## Positional arguments are treated as required values
         subparser.set_defaults(func=new_function)
+
+        return subparser  # for further analysis during tests
 
     def _analyze_function(self, func):
         """

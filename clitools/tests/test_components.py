@@ -1,5 +1,5 @@
 """
-Unit tests for the components
+Unit tests for the internal components
 """
 
 import pytest
@@ -34,6 +34,8 @@ def test_arg_from_free_value():
         == (('--dummy',), {'type': str, 'default': None})
     assert cli._arg_from_free_value('dummy', 'hello') \
         == (('--dummy',), {'type': str, 'default': 'hello'})
+    assert cli._arg_from_free_value('name', 'hello') \
+        == (('--name',), {'type': str, 'default': 'hello'})
 
 
 def generate_analyze_function_params():
@@ -132,3 +134,25 @@ def generate_analyze_function_params():
 @pytest.mark.parametrize('func,info', list(generate_analyze_function_params()))
 def test_analyze_function(func, info):
     assert CliApp()._analyze_function(func) == info
+
+
+def test_function_registration():
+    """
+    Pin-point a nasty bug that was occurring due to a wrong name..
+    """
+
+    cli = CliApp()
+
+    def hello(name='world'):
+        pass
+
+    func_info = cli._analyze_function(hello)
+    assert func_info['keyword_args'] == {'name': 'world'}
+
+    a, kw = cli._arg_from_free_value('name', 'world')
+    assert a == ('--name',)
+    assert kw == {'default': 'world', 'type': str}
+
+    subparser = cli._register_command(hello)
+    assert subparser.get_default('func').func is hello
+    assert subparser.get_default('name') == 'world'

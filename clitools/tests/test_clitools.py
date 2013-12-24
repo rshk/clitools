@@ -1,5 +1,5 @@
 """
-Tests for the CLI tools
+Functional tests for the CLI tools
 """
 
 from __future__ import print_function
@@ -64,11 +64,10 @@ def gen_test_case(args, out=None, err=None, success=True):
         out=u'usage: cli-app hello_optional_name [-h] [--name NAME]\n\n'
         'optional arguments:\n'
         '  -h, --help   show this help message and exit\n'
-        '  --name NAME\n',
-        ),
-    # gen_test_case(['hello_optional_name'], out='Hello, world!'),
-    # gen_test_case(['hello_optional_name', '--name', 'Python'],
-    #               out='Hello, Python!'),
+        '  --name NAME\n'),
+    gen_test_case(['hello_optional_name'], out='Hello, world!\n'),
+    gen_test_case(['hello_optional_name', '--name', 'Python'],
+                  out='Hello, Python!\n'),
 
     gen_test_case(['non_existent_command'], success=False),
 ])
