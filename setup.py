@@ -60,6 +60,82 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
+long_description = """\
+Example usage
+=============
+
+You can create your CLI script like this:
+
+.. code-block:: python
+
+    from clitools import CliApp
+
+    cli = CliApp()
+
+
+    @cli.command
+    def hello(name='world', bye=False):
+        greet = 'Bye' if bye else 'Hello'
+        print("{0}, {1}".format(greet, name))
+
+
+    if __name__ == '__main__':
+        cli.run()
+
+
+and then run it right away!
+
+::
+
+    % python sample_app.py
+    usage: cli-app [-h] {hello} ...
+    cli-app: error: too few arguments
+    >>> exited 2
+
+    % python sample_app.py --help
+    usage: cli-app [-h] {hello} ...
+
+    positional arguments:
+      {hello}     sub-commands
+        hello
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+    % python sample_app.py hello
+    Hello, world
+
+    % python sample_app.py hello --name=Python
+    Hello, Python
+
+    % python sample_app.py hello --help
+    usage: cli-app hello [-h] [--bye] [--name NAME]
+
+    optional arguments:
+      -h, --help   show this help message and exit
+      --bye
+      --name NAME
+
+    % python sample_app.py hello --bye --name=Spam
+    Bye, Spam
+
+..super-cool, isn't it?
+
+
+What's the difference with other libraries, such as Cliff?
+==========================================================
+
+Cliff_ is meant for building complex, fully-featured CLI applications.
+CliTools just acts as a "bridge" to quickly expose a Python
+function as a script in the "most obvious" way, without need for extensibility
+or support for more complex use cases.
+
+The main goal is to provide something you can quickly use without having to
+continuously refer to the documentation :)
+
+.. _Cliff: https://cliff.readthedocs.org/
+
+"""
 
 setup(
     name='CliTools',
@@ -70,7 +146,7 @@ setup(
     author='Samuele Santi',
     author_email='samuele@samuelesanti.com',
     description='Utilities for building CLI scripts in Python',
-    long_description='Utilities for building CLI scripts in Python',
+    long_description=long_description,
     install_requires=install_requires,
     tests_require=tests_require,
     test_suite='clitools.tests',
