@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Usage documentation &mdash; clitools 0.3a documentation</title>
+  <title>Usage documentation &mdash; clitools 0.4a documentation</title>
   
 
   
@@ -22,7 +22,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:'./',
-        VERSION:'0.3a',
+        VERSION:'0.4a',
         COLLAPSE_INDEX:false,
         FILE_SUFFIX:'.html',
         HAS_SOURCE:  true
@@ -43,7 +43,7 @@
   
 
   
-    <link rel="top" title="clitools 0.3a documentation" href="index.html"/>
+    <link rel="top" title="clitools 0.4a documentation" href="index.html"/>
         <link rel="prev" title="Welcome to clitools’s documentation!" href="index.html"/> 
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -71,7 +71,8 @@
             <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="">Usage documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#registering-a-command">Registering a command</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#running">Running</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#arguments-auto-discovery">Arguments auto-discovery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manually-specify-arguments">Manually specify arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -103,50 +104,98 @@
           
   <div class="section" id="usage-documentation">
 <h1>Usage documentation<a class="headerlink" href="#usage-documentation" title="Permalink to this headline">¶</a></h1>
-<p>First, you need to instantiate a <tt class="docutils literal"><span class="pre">CliApp</span></tt> object:</p>
+<p>All the commands registration and execution is handled by the <tt class="docutils literal"><span class="pre">CliApp</span></tt> class.
+You need to create an instance of it on top of your main module, and then
+call its <tt class="docutils literal"><span class="pre">.run()</span></tt> method when you&#8217;re ready to go:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">clitools</span> <span class="kn">import</span> <span class="n">CliApp</span>
+
 <span class="n">cli</span> <span class="o">=</span> <span class="n">CliApp</span><span class="p">()</span>
+
+<span class="c"># ...</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">cli</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
 <div class="section" id="registering-a-command">
 <h2>Registering a command<a class="headerlink" href="#registering-a-command" title="Permalink to this headline">¶</a></h2>
-<p>Each command is associated to a function accepting the parser arguments
-as its only argument.</p>
-<p>To register new commands, you can simply use the <tt class="docutils literal"><span class="pre">command</span></tt> decorator.</p>
-<p>In order to prevent conflicts with builtin functions / reserved keywords,
-you can add the <tt class="docutils literal"><span class="pre">command_</span></tt> prefix to function names. It will be stripped
-when generating command name.</p>
+<p>Each command is simply a function to be called when the appropriate
+sub-command is selected.</p>
+<p>To register a new command, simply use the <tt class="docutils literal"><span class="pre">CliApp().command</span></tt> decorator.</p>
+<p>Arguments, options, documentation, etc. are all taken from function
+arguments and docstring.</p>
+<p>For example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@cli.command</span>
-<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello, world!&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello, {0}!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>Is equivalent to:</p>
+<p>You&#8217;ll get a sub-command named <tt class="docutils literal"><span class="pre">hello</span></tt>, accepting a single (required)
+positional argument, <tt class="docutils literal"><span class="pre">name</span></tt>.</p>
+<p>If you invoke the script like this:</p>
+<div class="highlight-python"><pre>% ./my-script.py hello world</pre>
+</div>
+<p>You&#8217;ll get the string <tt class="docutils literal"><span class="pre">Hello,</span> <span class="pre">world!</span></tt> on the output.</p>
+<p>Suppose we&#8217;d now want to make the argument optional:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@cli.command</span>
-<span class="k">def</span> <span class="nf">command_hello</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello, world!&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;world&#39;</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello, {0}!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="section" id="adding-arguments-to-commands">
-<h3>Adding arguments to commands<a class="headerlink" href="#adding-arguments-to-commands" title="Permalink to this headline">¶</a></h3>
-<p>Simply use the <tt class="docutils literal"><span class="pre">.arg()</span></tt> decorator, which accepts the same arguments
-as argparse subparser <tt class="docutils literal"><span class="pre">.add_argument()</span></tt> method:</p>
+<p>Let&#8217;s invoke it:</p>
+<div class="highlight-python"><pre>% ./my-script.py
+Hello, world!
+
+% ./my-script.py --name Python
+Hello, Python!</pre>
+</div>
+</div>
+<div class="section" id="arguments-auto-discovery">
+<h2>Arguments auto-discovery<a class="headerlink" href="#arguments-auto-discovery" title="Permalink to this headline">¶</a></h2>
+<p>The arguments generation pattern is quite smart, to try to guess the appropriate
+argument type based on the argument default value.</p>
+<ul class="simple">
+<li>Positional arguments are treated just as positional arguments</li>
+<li>If the default value is <tt class="docutils literal"><span class="pre">None</span></tt>, a simple optional argument will be generated.</li>
+<li>A boolean default value will result in a <tt class="docutils literal"><span class="pre">store_{false,true}</span></tt> with default
+value == the function default value</li>
+<li>A list/tuple with less than two elemets will result in an <tt class="docutils literal"><span class="pre">action=append</span></tt>
+argument. If there is at least one element, its type will be enforced on
+the received arguments.</li>
+<li>A list/tuple with at least two elements will result in a <tt class="docutils literal"><span class="pre">type='choice'</span></tt>
+argument.</li>
+<li>Anything else will result in a normal argument, with default value and
+enforced type.</li>
+</ul>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">There is no support for variable arguments / kwargs (yet).
+If you use them in your command function, they will simply
+be ignored.</p>
+</div>
+</div>
+<div class="section" id="manually-specify-arguments">
+<h2>Manually specify arguments<a class="headerlink" href="#manually-specify-arguments" title="Permalink to this headline">¶</a></h2>
+<p>You can use the <tt class="docutils literal"><span class="pre">CliApp().arg</span></tt> class to manually specify arguments/kwargs
+to <tt class="docutils literal"><span class="pre">.add_argument()</span></tt> call.</p>
+<p>The <tt class="docutils literal"><span class="pre">default</span></tt> value you specify will then be set as the actual default value
+on the function:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@cli.command</span>
-<span class="nd">@cli.arg</span><span class="p">(</span><span class="s">&#39;--name&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello, {0}!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">cli</span><span class="o">.</span><span class="n">arg</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s">&#39;world&#39;</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;hello, &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You can also use the <tt class="docutils literal"><span class="pre">.flag()</span></tt> decorator, that simply has some different
-default values (action=&#8217;store_true&#8217;, default=False).</p>
-</div>
-</div>
-<div class="section" id="running">
-<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
-<p>Finally, to run your application:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">cli</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</pre></div>
+<div class="highlight-python"><pre>% ./my-script.py hello
+hello, world
+
+% ./my-script.py hello --name=python
+hello, python
+
+&gt;&gt;&gt; hello()
+hello, world
+
+&gt;&gt;&gt; hello(name='python')
+hello, python</pre>
 </div>
 </div>
 </div>
