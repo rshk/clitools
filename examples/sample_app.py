@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-## New generation example script
-
 from __future__ import print_function
 
 from clitools import CliApp
@@ -11,13 +9,9 @@ cli = CliApp()
 
 
 @cli.command
-def simple_command():
-    print("Hello, world")
-
-
-@cli.command
-def hello(name='world'):
-    print("Hello, {0}".format(name))
+def hello(name='world', bye=False):
+    greet = 'Bye' if bye else 'Hello'
+    print("{0}, {1}".format(greet, name))
 
 
 if __name__ == '__main__':
