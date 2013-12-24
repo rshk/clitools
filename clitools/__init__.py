@@ -22,7 +22,9 @@ Example usage::
 
 import argparse
 import logging
-import os
+
+
+__version__ = '0.4a'  # sync with setup.py!
 
 
 logger = logging.getLogger('clitools')
