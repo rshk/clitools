@@ -6,10 +6,11 @@ from __future__ import print_function
 
 import pytest
 
+from clitools import CliApp
+
 
 @pytest.fixture
 def sample_script():
-    from clitools import CliApp
 
     cli = CliApp()
 
@@ -147,3 +148,23 @@ def test_simple_script_internal(sample_script, args, result, capsys):
         assert stdout == exp_out
     if exp_err is not None:
         assert stderr == exp_err
+
+
+def test_make_sure_we_clean_default_args(sample_script, capsys):
+    cli = CliApp()
+
+    @cli.command
+    def cmd_with_explicit_args(aaa=cli.arg(default='spam'),
+                               bbb=cli.arg(type=int, default=100),
+                               ccc='example'):
+        print('aaa: {0}'.format(aaa))
+        print('bbb: {0}'.format(bbb))
+        print('ccc: {0}'.format(ccc))
+
+    cmd_with_explicit_args()
+    out, err = capsys.readouterr()
+    assert out == 'aaa: spam\nbbb: 100\nccc: example\n'
+
+    cli.run(['cmd_with_explicit_args', '--aaa=AAA'])
+    out, err = capsys.readouterr()
+    assert out == 'aaa: AAA\nbbb: 100\nccc: example\n'
