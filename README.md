@@ -15,24 +15,63 @@ All the package documentation is hosted on GitHub pages:
 
 ## Example usage
 
+You can create your CLI script like this:
+
 ```python
->>> from clitools import CliApp
+from clitools import CliApp
 
->>> cli = CliApp()
+cli = CliApp()
 
->>> @cli.command
-... def hello(name, bye=False):
-... 	greeting = 'Bye' if bye else 'Hello'
-...     print("{0}, {1}".format(greeting, name))
 
->>> cli.run(['--name', 'world'])
-Hello, world!
+@cli.command
+def hello(name='world', bye=False):
+    greet = 'Bye' if bye else 'Hello'
+    print("{0}, {1}".format(greet, name))
 
->>> cli.run(['--name', 'world', '--bye'])
-Bye, world!
+
+if __name__ == '__main__':
+    cli.run()
 ```
+
+and then run it right away!
+
+```console
+% python sample_app.py
+usage: cli-app [-h] {hello} ...
+cli-app: error: too few arguments
+>>> exited 2
+
+% python sample_app.py --help
+usage: cli-app [-h] {hello} ...
+
+positional arguments:
+  {hello}     sub-commands
+    hello
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+% python sample_app.py hello
+Hello, world
+
+% python sample_app.py hello --name=Python
+Hello, Python
+
+% python sample_app.py hello --help
+usage: cli-app hello [-h] [--bye] [--name NAME]
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --bye
+  --name NAME
+
+% python sample_app.py hello --bye --name=Spam
+Bye, Spam
+```
+
+..super-cool, isn't it?
+
 
 -----
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/rshk/clitools/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
