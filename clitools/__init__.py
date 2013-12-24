@@ -29,19 +29,6 @@ __version__ = '0.4a'  # sync with setup.py!
 
 logger = logging.getLogger('clitools')
 
-# LOGFILE = os.environ.get('LOGFILE')
-# if LOGFILE is not None:
-#     handler = logging.StreamHandler(open(LOGFILE, 'w'))
-#     formatter = logging.Formatter(
-#         fmt='%(levelname)s [in %(module)s:%(funcName)s '
-#         '%(filename)s:%(lineno)s] '
-#         '%(message)s')
-#     handler.setFormatter(formatter)
-#     handler.setLevel(logging.DEBUG)
-#     logger.setLevel(logging.DEBUG)
-#     logger.addHandler(handler)
-#     logger.info('--- Logging start ---')
-
 
 class Command(object):
     def __init__(self, func, func_info):
@@ -178,13 +165,23 @@ class CliApp(object):
         info['accepts_kwargs'] = bool(func.func_code.co_flags & 0x08)
         info['is_generator'] = bool(func.func_code.co_flags & 0x20)
 
-        ## Get function arguments / default values
-        arg_names = list(func.func_code.co_varnames or [])
+        ## Name of all the variables used in the function
+        var_names = list(func.func_code.co_varnames or [])
+
+        ## Number of arguments (incl ones w/ default value,
+        ## excluding *args / **kwargs)
+        arg_count = func.func_code.co_argcount
+
+        arg_names = var_names[:arg_count]
+        var_names = var_names[arg_count:]  # other vars..
+
+        ## Default values for arguments
         arg_defaults = list(func.func_defaults or [])
-        info['kwargs_name'] = arg_names.pop() \
-            if info['accepts_kwargs'] else None
-        info['varargs_name'] = arg_names.pop() \
+
+        info['varargs_name'] = var_names.pop(0) \
             if info['accepts_varargs'] else None
+        info['kwargs_name'] = var_names.pop(0) \
+            if info['accepts_kwargs'] else None
 
         ## Split positional arguments form arguments with defaults
         nargs = len(arg_names) - len(arg_defaults)
@@ -239,7 +236,7 @@ class CliApp(object):
                     type_ = (value[0]
                              if isinstance(value[0], type)
                              else type(value[0]))
-                return o(arg_name, type=type_, action='append')
+                return o(arg_name, type=type_, action='append', default=[])
 
         else:
             ## Anything of this type will fit..

@@ -30,8 +30,9 @@ def sample_script():
         print("Hello, {0}!".format(name))
 
     @cli.command
-    def hello_list(names=[str]):
-        print('\n'.join('Hello, {0}'.format(name) for name in names))
+    def hello_list(name=[str]):
+        for nm in name:
+            print("Hello, {0}".format(nm))
 
     return cli
 
@@ -68,6 +69,10 @@ def gen_test_case(args, out=None, err=None, success=True):
     gen_test_case(['hello_optional_name'], out='Hello, world!\n'),
     gen_test_case(['hello_optional_name', '--name', 'Python'],
                   out='Hello, Python!\n'),
+
+    gen_test_case(['hello_list'], out=''),
+    gen_test_case(['hello_list', '--name', 'spam', '--name', 'eggs'],
+                  out='Hello, spam\nHello, eggs\n'),
 
     gen_test_case(['non_existent_command'], success=False),
 ])

@@ -19,11 +19,11 @@ def test_arg_from_free_value():
         == (('--dummy',), {'default': False, 'action': 'store_true'})
 
     assert cli._arg_from_free_value('dummy', []) \
-        == (('--dummy',), {'action': 'append', 'type': None})
+        == (('--dummy',), {'action': 'append', 'type': None, 'default': []})
     assert cli._arg_from_free_value('dummy', [str]) \
-        == (('--dummy',), {'action': 'append', 'type': str})
+        == (('--dummy',), {'action': 'append', 'type': str, 'default': []})
     assert cli._arg_from_free_value('dummy', ['string here']) \
-        == (('--dummy',), {'action': 'append', 'type': str})
+        == (('--dummy',), {'action': 'append', 'type': str, 'default': []})
 
     assert cli._arg_from_free_value('dummy', ['one', 'two', 'three']) \
         == (('--dummy',), {'type': 'choice',
@@ -34,8 +34,6 @@ def test_arg_from_free_value():
         == (('--dummy',), {'type': str, 'default': None})
     assert cli._arg_from_free_value('dummy', 'hello') \
         == (('--dummy',), {'type': str, 'default': 'hello'})
-    assert cli._arg_from_free_value('name', 'hello') \
-        == (('--name',), {'type': str, 'default': 'hello'})
 
 
 def generate_analyze_function_params():
@@ -117,6 +115,24 @@ def generate_analyze_function_params():
     def func(arg1, arg2, kwa1='kwv1', kwa2='kwv2', *args, **kwargs):
         """This is a dummy function"""
         pass
+
+    yield func, {
+        'name': 'func',
+        'help_text': 'This is a dummy function',
+        'accepts_varargs': True,
+        'accepts_kwargs': True,
+        'is_generator': False,
+        'kwargs_name': 'kwargs',
+        'varargs_name': 'args',
+        'positional_args': ['arg1', 'arg2'],
+        'keyword_args': {'kwa1': 'kwv1', 'kwa2': 'kwv2'},
+    }
+
+    def func(arg1, arg2, kwa1='kwv1', kwa2='kwv2', *args, **kwargs):
+        """This is a dummy function"""
+        hello = arg1 + arg2
+        othervar = 123
+        return hello, othervar
 
     yield func, {
         'name': 'func',
