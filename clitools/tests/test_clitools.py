@@ -34,6 +34,25 @@ def sample_script():
         for nm in name:
             print("Hello, {0}".format(nm))
 
+    @cli.command
+    def cmd_with_many_args(arg1, kw1='val1', kw2=123, kw3=False):
+        print('arg1: {0}'.format(arg1))
+        print('kw1: {0}'.format(kw1))
+        print('kw2: {0}'.format(kw2))
+        print('kw3: {0}'.format(kw3))
+
+    @cli.command
+    def cmd_with_explicit_args(aaa=cli.arg(default='spam'),
+                               bbb=cli.arg(type=int, default=100),
+                               ccc='example'):
+        print('aaa: {0}'.format(aaa))
+        print('bbb: {0}'.format(bbb))
+        print('ccc: {0}'.format(ccc))
+
+    @cli.command(name='custom_name')
+    def command_with_custom_name():
+        print('itworks')
+
     return cli
 
 
@@ -73,6 +92,36 @@ def gen_test_case(args, out=None, err=None, success=True):
     gen_test_case(['hello_list'], out=''),
     gen_test_case(['hello_list', '--name', 'spam', '--name', 'eggs'],
                   out='Hello, spam\nHello, eggs\n'),
+
+    gen_test_case(['cmd_with_many_args'], success=False),
+    gen_test_case(
+        ['cmd_with_many_args', 'hello'],
+        out='arg1: hello\nkw1: val1\nkw2: 123\nkw3: False\n'),
+    gen_test_case(
+        ['cmd_with_many_args', 'hello', '--kw1', 'hello'],
+        out='arg1: hello\nkw1: hello\nkw2: 123\nkw3: False\n'),
+    gen_test_case(
+        ['cmd_with_many_args', 'hello', '--kw2', 'not-an-int'],
+        success=False),
+    gen_test_case(
+        ['cmd_with_many_args', 'hello', '--kw2', '1024', '--kw1', 'yay'],
+        out='arg1: hello\nkw1: yay\nkw2: 1024\nkw3: False\n'),
+    gen_test_case(
+        ['cmd_with_many_args', 'hello', '--kw2', '1024', '--kw3'],
+        out='arg1: hello\nkw1: val1\nkw2: 1024\nkw3: True\n'),
+
+    gen_test_case(
+        ['cmd_with_explicit_args'],
+        out='aaa: spam\nbbb: 100\nccc: example\n'),
+    gen_test_case(
+        ['cmd_with_explicit_args', '--aaa=AAA', '--bbb', '123',
+         '--ccc', 'foo'],
+        out='aaa: AAA\nbbb: 123\nccc: foo\n'),
+    gen_test_case(
+        ['cmd_with_explicit_args', '--bbb', 'not-an-int'],
+        success=False),
+
+    gen_test_case(['custom_name'], out='itworks\n'),
 
     gen_test_case(['non_existent_command'], success=False),
 ])

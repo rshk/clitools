@@ -23,7 +23,7 @@ All the package documentation is hosted on GitHub pages:
 >>> @cli.command
 ... def hello(name, bye=False):
 ... 	greeting = 'Bye' if bye else 'Hello'
-...     print("{0}, {1".format(greeting, name))
+...     print("{0}, {1}".format(greeting, name))
 
 >>> cli.run(['--name', 'world'])
 Hello, world!

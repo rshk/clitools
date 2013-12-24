@@ -1,64 +1,114 @@
 Usage documentation
 ###################
 
-First, you need to instantiate a ``CliApp`` object:
+All the commands registration and execution is handled by the ``CliApp`` class.
+You need to create an instance of it on top of your main module, and then
+call its ``.run()`` method when you're ready to go:
 
 .. code-block:: python
 
     from clitools import CliApp
+
     cli = CliApp()
+
+    # ...
+
+    if __name__ == '__main__':
+        cli.run()
 
 
 Registering a command
 =====================
 
-Each command is associated to a function accepting the parser arguments
-as its only argument.
+Each command is simply a function to be called when the appropriate
+sub-command is selected.
 
-To register new commands, you can simply use the ``command`` decorator.
+To register a new command, simply use the ``CliApp().command`` decorator.
 
-In order to prevent conflicts with builtin functions / reserved keywords,
-you can add the ``command_`` prefix to function names. It will be stripped
-when generating command name.
+Arguments, options, documentation, etc. are all taken from function
+arguments and docstring.
 
-.. code-block:: python
-
-    @cli.command
-    def hello(args):
-        print("Hello, world!")
-
-Is equivalent to:
+For example:
 
 .. code-block:: python
 
     @cli.command
-    def command_hello(args):
-        print("Hello, world!")
+    def hello(name):
+        print("Hello, {0}!".format(name))
 
+You'll get a sub-command named ``hello``, accepting a single (required)
+positional argument, ``name``.
 
-Adding arguments to commands
-----------------------------
+If you invoke the script like this::
 
-Simply use the ``.arg()`` decorator, which accepts the same arguments
-as argparse subparser ``.add_argument()`` method:
+    % ./my-script.py hello world
+
+You'll get the string ``Hello, world!`` on the output.
+
+Suppose we'd now want to make the argument optional:
 
 .. code-block:: python
 
     @cli.command
-    @cli.arg('--name')
-    def hello(args):
-        print("Hello, {0}!".format(args.name))
+    def hello(name='world'):
+        print("Hello, {0}!".format(name))
 
-You can also use the ``.flag()`` decorator, that simply has some different
-default values (action='store_true', default=False).
+Let's invoke it::
+
+    % ./my-script.py
+    Hello, world!
+
+    % ./my-script.py --name Python
+    Hello, Python!
 
 
-Running
-=======
+Arguments auto-discovery
+========================
 
-Finally, to run your application:
+The arguments generation pattern is quite smart, to try to guess the appropriate
+argument type based on the argument default value.
+
+* Positional arguments are treated just as positional arguments
+* If the default value is ``None``, a simple optional argument will be generated.
+* A boolean default value will result in a ``store_{false,true}`` with default
+  value == the function default value
+* A list/tuple with less than two elemets will result in an ``action=append``
+  argument. If there is at least one element, its type will be enforced on
+  the received arguments.
+* A list/tuple with at least two elements will result in a ``type='choice'``
+  argument.
+* Anything else will result in a normal argument, with default value and
+  enforced type.
+
+.. warning:: There is no support for variable arguments / kwargs (yet).
+	     If you use them in your command function, they will simply
+	     be ignored.
+
+Manually specify arguments
+==========================
+
+You can use the ``CliApp().arg`` class to manually specify arguments/kwargs
+to ``.add_argument()`` call.
+
+The ``default`` value you specify will then be set as the actual default value
+on the function:
 
 .. code-block:: python
 
-    if __name__ == '__main__':
-        cli.run()
+    @cli.command
+    def hello(name=cli.arg(default='world'))
+        print("hello, " + name)
+
+::
+
+    % ./my-script.py hello
+    hello, world
+
+    % ./my-script.py hello --name=python
+    hello, python
+
+    >>> hello()
+    hello, world
+
+    >>> hello(name='python')
+    hello, python
