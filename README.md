@@ -72,6 +72,17 @@ Bye, Spam
 ..super-cool, isn't it?
 
 
+## What's the difference with other libraries, such as Cliff?
+
+[Cliff](https://cliff.readthedocs.org/) is meant for building complex, fully-featured
+CLI applications. CliTools just acts as a "bridge" to quickly expose a Python
+function as a script in the "most obvious" way, without need for extensibility
+or support for more complex use cases.
+
+The main goal is to provide something you can quickly use without having to continuously
+refer to the documentation :)
+
+
 -----
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/rshk/clitools/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
