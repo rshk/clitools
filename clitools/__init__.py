@@ -21,18 +21,31 @@ Example usage::
 """
 
 import argparse
-import textwrap
+import logging
+import os
+
+
+logger = logging.getLogger('clitools')
+
+LOGFILE = os.environ.get('LOGFILE')
+if LOGFILE is not None:
+    handler = logging.StreamHandler(open(LOGFILE, 'w'))
+    formatter = logging.Formatter(
+        fmt='%(levelname)s [in %(module)s:%(funcName)s '
+        '%(filename)s:%(lineno)s] '
+        '%(message)s')
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+    logger.info('--- Logging start ---')
 
 
 class Command(object):
-    def __init__(self, func, argnames, kwnames, kwdefaults,
-                 varargs_name, kwargs_name):
+    def __init__(self, func, func_info):
         self.func = func
-        self.argnames = argnames
-        self.kwnames = kwnames
-        self.kwdefaults = kwdefaults
-        self.varargs_name = varargs_name
-        self.kwargs_name = kwargs_name
+        self.func_info = func_info
+        logger.debug('-- New CliApp instance')
 
     def __call__(self, parsed_args):
         """
@@ -43,24 +56,17 @@ class Command(object):
         args = []
         kwargs = {}
 
-        for argname in self.argnames:
+        for argname in self.func_info['positional_args']:
             args.append(getattr(parsed_args, argname))
 
-        for argname in self.kwnames:
-            kwargs[argname] = getattr(parsed_args, argname)
+        for argname, default in self.func_info['keyword_args'].iteritems():
+            kwargs[argname] = getattr(parsed_args, argname, default)
 
         return self.func(*args, **kwargs)
 
     def __getattr__(self, name):
         ## Let's fake to be the wrapped function
         return getattr(self.func, name)
-
-    @property
-    def command_name(self):
-        name = self.func.__name__
-        if name.startswith('command_'):
-            name = name[len('command_'):]
-        return name
 
 
 class CliApp(object):
@@ -101,70 +107,98 @@ class CliApp(object):
         (yet)! They are just stripped & ignored, ATM..
         """
 
-        ## Prepare the command name
+        ## Read keyword arguments
         name = kwargs.get('name')
+        help_text = kwargs.get('help')
+
+        func_info = self._analyze_function(func)
+
         if name is None:
-            name = func.func_name
+            name = func_info['name']
+            ## Strip the command_ prefix from function name
             if name.startswith('command_'):
                 name = name[len('command_'):]
 
-        ## Prepare the help text
-        help_text = kwargs.get('help')
         if help_text is None:
-            help_text = func.__doc__
-        if help_text is not None:
-            help_text = textwrap.dedent(help_text).lstrip()
+            help_text = func_info['help_text']
 
         ## Create the new subparser
         subparser = self.subparsers.add_parser(name, help=help_text)
 
-        ## Interpret some flags
-        accepts_varargs = func.func_code.co_flags & 0x04
-        accepts_kwargs = func.func_code.co_flags & 0x08
-        #is_generator = func.func_code.co_flags & 0x20
-
-        ## Get function arguments / default values
-        arg_names = list(func.func_code.co_varnames or [])
-        arg_defaults = list(func.func_defaults or [])
-        kwargs_name = arg_names.pop() if accepts_kwargs else None
-        varargs_name = arg_names.pop() if accepts_varargs else None
-
-        ## Split positional arguments form arguments with defaults
-        nargs = len(arg_names) - len(arg_defaults)
-        positional_args, keyword_args = arg_names[:nargs], arg_names[nargs:]
-        #new_defaults = []
-
-        for argname in positional_args:
-            ## This is a required positional argument!
+        ## Process required positional arguments
+        for argname in func_info['positional_args']:
+            logger.debug('New argument: {0}'.format(argname))
             subparser.add_argument(argname)
 
-        for argname, argvalue in zip(keyword_args, arg_defaults):
+        ## Process optional keyword arguments
+        for argname, argvalue in func_info['keyword_args'].iteritems():
             if isinstance(argvalue, self.arg):
-                subparser.add_argument(
-                    '--' + argname, *argvalue.args, **argvalue.kwargs)
+                ## We already have args / kwargs for this argument
+                a = (['--' + argname] + list(argvalue.args))
+                kw = argvalue.kwargs
 
             else:
+                ## We need to guess args / kwargs from default value
                 a, kw = self._arg_from_free_value(argname, argvalue)
+
+            logger.debug('New argument: {0!r} {1!r}'.format(a, kwargs))
+            subparser.add_argument(*a, **kwargs)
 
         ## todo: replace defaults on the original function, to strip
         ##       any instance of ``self.arg``?
 
-        new_function = Command(
-            func=func, argnames=positional_args, kwnames=keyword_args,
-            kwdefaults=arg_defaults, varargs_name=varargs_name,
-            kwargs_name=kwargs_name)
-
-        ## todo: wrap the function in something able to process
-        ##       arguments and do stuff..
+        new_function = Command(func=func, func_info=func_info)
 
         ## Positional arguments are treated as required values
         subparser.set_defaults(func=new_function)
+
+    def _analyze_function(self, func):
+        """
+        Extract information from a function:
+
+        - positional argument names
+        - optional argument names / default values
+        - does it accept *args?
+        - does it accept **kwargs?
+        """
+        import pydoc
+
+        info = {}
+
+        info['name'] = func.__name__
+
+        # todo extract arguments docs too!
+        info['help_text'] = pydoc.getdoc(func)
+
+        ## Interpret some flags
+        info['accepts_varargs'] = bool(func.func_code.co_flags & 0x04)
+        info['accepts_kwargs'] = bool(func.func_code.co_flags & 0x08)
+        info['is_generator'] = bool(func.func_code.co_flags & 0x20)
+
+        ## Get function arguments / default values
+        arg_names = list(func.func_code.co_varnames or [])
+        arg_defaults = list(func.func_defaults or [])
+        info['kwargs_name'] = arg_names.pop() \
+            if info['accepts_kwargs'] else None
+        info['varargs_name'] = arg_names.pop() \
+            if info['accepts_varargs'] else None
+
+        ## Split positional arguments form arguments with defaults
+        nargs = len(arg_names) - len(arg_defaults)
+        pos_args, keyword_args = arg_names[:nargs], arg_names[nargs:]
+
+        info['positional_args'] = pos_args
+        info['keyword_args'] = dict(zip(keyword_args, arg_defaults))
+
+        return info
 
     def _arg_from_free_value(self, name, value):
         """
         Guess the correct argument type to be built for free-form
         arguments (default values)
         """
+        logger.debug('_arg_from_free_value({0!r}, {1!r})'.format(name, value))
+
         arg_name = '--' + name
 
         def o(*a, **kw):
@@ -172,10 +206,12 @@ class CliApp(object):
 
         if value is None:
             ## None: this is just a generic argument, accepting any value
+            logger.debug('None -> generic optional argument')
             return o(arg_name, default=value)
 
         elif (value is True) or (value is False):
             ## Boolean value: on/off flag
+            logger.debug('bool -> flag')
             action = 'store_false' if value else 'store_true'
             return o(arg_name, action=action, default=value)
 
@@ -186,13 +222,15 @@ class CliApp(object):
 
             if len(value) > 1:
                 ## Choices
-                return o(arg_name, type='choice',
-                         choices=value, default=value[0])
+                logger.debug('List with length >= 2 -> choices')
+                return o(arg_name, type='choice', choices=value,
+                         default=value[0])
 
             else:
                 ## Append (of type)
                 type_ = None
 
+                logger.debug('List with length < 2 -> list of items')
                 if len(value) > 0:
                     ## This is [<type>]
                     type_ = (value[0]
@@ -202,15 +240,19 @@ class CliApp(object):
 
         else:
             ## Anything of this type will fit..
+            ## todo: make sure the type is a supported one?
             if isinstance(value, type):
                 type_ = value
                 default = None
             else:
                 type_ = type(value)
                 default = value
+            logger.debug('Generic object of type {0!r} (default: {1!r})'
+                         .format(type_, default))
+            # import ipdb; ipdb.set_trace()
             return o(arg_name, type=type_, default=default)
 
     def run(self, args=None):
         """Handle running from the command line"""
-        args = self.parser.parse_args(args)
-        return args.func(args)
+        parsed_args = self.parser.parse_args(args)
+        return parsed_args.func(parsed_args)

@@ -4,13 +4,7 @@ Tests for the CLI tools
 
 from __future__ import print_function
 
-from io import BytesIO
-# import subprocess
-# import sys
-# import textwrap
-
 import pytest
-from mock import patch
 
 
 @pytest.fixture
@@ -47,24 +41,39 @@ def gen_test_case(args, out=None, err=None, success=True):
 
 
 @pytest.mark.parametrize('args,result', [
+    gen_test_case([], success=False),  # no args -> invalid usage
+    gen_test_case(['--help'], success=True),  # --help is ok
+    gen_test_case(['help'], success=False),  # does not exist by default
+
     gen_test_case(['hello'], out='Hello, world!\n'),
+    gen_test_case(['hello', 'garbage'], success=False),
 
     gen_test_case(['example'], out='Example text\n'),
 
-    gen_test_case(['hello_required_name'], success=False),
     gen_test_case(['hello_required_name', 'world'], out='Hello, world!\n'),
-    gen_test_case(['hello_required_name', 'world', 'garbage'], success=False),
+    gen_test_case(['hello_required_name'], success=False),
+    gen_test_case(['hello_required_name', 'world', 'garbage'],
+                  success=False),
+    gen_test_case(['hello_required_name', 'world', '--garbage'],
+                  success=False),
+    gen_test_case(['hello_required_name', '--help'],
+                  success=True),
+
+    gen_test_case(
+        ['hello_optional_name', '--help'],
+        out=u'usage: cli-app hello_optional_name [-h] [--name NAME]\n\n'
+        'optional arguments:\n'
+        '  -h, --help   show this help message and exit\n'
+        '  --name NAME\n',
+        ),
+    # gen_test_case(['hello_optional_name'], out='Hello, world!'),
+    # gen_test_case(['hello_optional_name', '--name', 'Python'],
+    #               out='Hello, Python!'),
 
     gen_test_case(['non_existent_command'], success=False),
 ])
 def test_simple_script_internal(sample_script, args, result, capsys):
     exp_out, exp_err, exp_success = result
-
-    # dummy_stdout = BytesIO()
-    # dummy_stderr = BytesIO()
-
-    # with patch('sys.stdout', dummy_stdout), \
-    #         patch('sys.stderr', dummy_stderr):
 
     return_code = 0
     try:
@@ -76,12 +85,12 @@ def test_simple_script_internal(sample_script, args, result, capsys):
 
     stdout, stderr = capsys.readouterr()
 
-    if exp_out is not None:
-        assert stdout == exp_out
-    if exp_err is not None:
-        assert stderr == exp_err
-
     if exp_success:
         assert return_code == 0
     else:
         assert return_code != 0
+
+    if exp_out is not None:
+        assert stdout == exp_out
+    if exp_err is not None:
+        assert stderr == exp_err
