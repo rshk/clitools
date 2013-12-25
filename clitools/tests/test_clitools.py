@@ -38,18 +38,18 @@ def sample_script():
     @cli.command
     def cmd_with_many_args(arg1, kw1='val1', kw2=123, kw3=False):
         assert isinstance(kw3, bool)
-        print('arg1: {0}'.format(arg1))
-        print('kw1: {0}'.format(kw1))
-        print('kw2: {0}'.format(kw2))
-        print('kw3: {0}'.format(kw3))
+        print('arg1: {0!s}'.format(arg1))
+        print('kw1: {0!s}'.format(kw1))
+        print('kw2: {0!s}'.format(kw2))
+        print('kw3: {0!s}'.format(kw3))
 
     @cli.command
     def cmd_with_explicit_args(aaa=cli.arg(default='spam'),
                                bbb=cli.arg(type=int, default=100),
                                ccc='example'):
-        print('aaa: {0}'.format(aaa))
-        print('bbb: {0}'.format(bbb))
-        print('ccc: {0}'.format(ccc))
+        print('aaa: {0!s}'.format(aaa))
+        print('bbb: {0!s}'.format(bbb))
+        print('ccc: {0!s}'.format(ccc))
 
     @cli.command(name='custom_name')
     def command_with_custom_name():
