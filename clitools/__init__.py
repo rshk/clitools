@@ -94,6 +94,11 @@ class CliApp(object):
 
         func_info = self._analyze_function(func)
 
+        ## WARNING! We're not supporting things like this, right now:
+        ## def func(a, ((b, c), d)=((1, 2), 3)): pass
+        ## Maybe, we should fallback to requiring "flat" arguments,
+        ## at least for the moment?
+
         ## Read keyword arguments
         name = kwargs.get('name')
         if name is None:
@@ -151,44 +156,33 @@ class CliApp(object):
         - does it accept *args?
         - does it accept **kwargs?
         """
-        import pydoc
+        import inspect
 
         info = {}
 
-        info['name'] = func.__name__
+        info['name'] = func.func_name
 
         # todo extract arguments docs too!
-        info['help_text'] = pydoc.getdoc(func)
+        info['help_text'] = inspect.getdoc(func)
 
-        ## Interpret some flags
-        info['accepts_varargs'] = bool(func.func_code.co_flags & 0x04)
-        info['accepts_kwargs'] = bool(func.func_code.co_flags & 0x08)
-        info['is_generator'] = bool(func.func_code.co_flags & 0x20)
+        argspec = inspect.getargspec(func)
+        is_generator = inspect.isgeneratorfunction(func)
 
-        ## Name of all the variables used in the function
-        var_names = list(func.func_code.co_varnames or [])
+        info['accepts_varargs'] = argspec.varargs is not None
+        info['varargs_name'] = argspec.varargs
 
-        ## Number of arguments (incl ones w/ default value,
-        ## excluding *args / **kwargs)
-        arg_count = func.func_code.co_argcount
+        info['accepts_kwargs'] = argspec.keywords is not None
+        info['kwargs_name'] = argspec.keywords
 
-        arg_names = var_names[:arg_count]
-        var_names = var_names[arg_count:]  # other vars..
+        info['is_generator'] = is_generator
 
-        ## Default values for arguments
-        arg_defaults = list(func.func_defaults or [])
+        arg_defaults = argspec.defaults or []
+        akw_limit = len(argspec.args) - len(arg_defaults)
+        info['positional_args'] = argspec.args[:akw_limit]
 
-        info['varargs_name'] = var_names.pop(0) \
-            if info['accepts_varargs'] else None
-        info['kwargs_name'] = var_names.pop(0) \
-            if info['accepts_kwargs'] else None
-
-        ## Split positional arguments form arguments with defaults
-        nargs = len(arg_names) - len(arg_defaults)
-        pos_args, keyword_args = arg_names[:nargs], arg_names[nargs:]
-
-        info['positional_args'] = pos_args
-        info['keyword_args'] = dict(zip(keyword_args, arg_defaults))
+        kwargs_names = argspec.args[akw_limit:]
+        assert len(kwargs_names) == len(arg_defaults)
+        info['keyword_args'] = dict(zip(kwargs_names, arg_defaults))
 
         return info
 

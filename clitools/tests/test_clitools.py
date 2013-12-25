@@ -37,6 +37,7 @@ def sample_script():
 
     @cli.command
     def cmd_with_many_args(arg1, kw1='val1', kw2=123, kw3=False):
+        assert isinstance(kw3, bool)
         print('arg1: {0}'.format(arg1))
         print('kw1: {0}'.format(kw1))
         print('kw2: {0}'.format(kw2))

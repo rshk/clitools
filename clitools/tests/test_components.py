@@ -42,7 +42,7 @@ def generate_analyze_function_params():
 
     yield func, {
         'name': 'func',
-        'help_text': '',
+        'help_text': None,
         'accepts_varargs': False,
         'accepts_kwargs': False,
         'is_generator': False,
@@ -57,7 +57,7 @@ def generate_analyze_function_params():
 
     yield func, {
         'name': 'func',
-        'help_text': '',
+        'help_text': None,
         'accepts_varargs': False,
         'accepts_kwargs': False,
         'is_generator': False,
@@ -72,7 +72,7 @@ def generate_analyze_function_params():
 
     yield func, {
         'name': 'func',
-        'help_text': '',
+        'help_text': None,
         'accepts_varargs': False,
         'accepts_kwargs': False,
         'is_generator': False,
@@ -87,7 +87,7 @@ def generate_analyze_function_params():
 
     yield func, {
         'name': 'func',
-        'help_text': '',
+        'help_text': None,
         'accepts_varargs': True,
         'accepts_kwargs': False,
         'is_generator': False,
@@ -102,7 +102,7 @@ def generate_analyze_function_params():
 
     yield func, {
         'name': 'func',
-        'help_text': '',
+        'help_text': None,
         'accepts_varargs': False,
         'accepts_kwargs': False,
         'is_generator': False,
