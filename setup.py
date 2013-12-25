@@ -3,7 +3,7 @@ from pkg_resources import normalize_path
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-version = '0.4a'  # sync with clitools.__version__ !
+version = '0.4a1'  # sync with clitools.__version__ !
 
 install_requires = []
 

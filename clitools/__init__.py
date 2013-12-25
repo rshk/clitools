@@ -24,7 +24,7 @@ import argparse
 import logging
 
 
-__version__ = '0.4a'  # sync with setup.py!
+__version__ = '0.4a1'  # sync with setup.py!
 
 
 logger = logging.getLogger('clitools')
