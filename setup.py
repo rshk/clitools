@@ -27,9 +27,10 @@ class PyTest(TestCommand):
         TestCommand.finalize_options(self)
         self.test_args = [
             '--ignore=build',
+            '--pep8',
+            '--verbose',
             '--cov=clitools',
             '--cov-report=term-missing',
-            '--pep8',
             'clitools']
         self.test_suite = True
 

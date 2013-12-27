@@ -4,6 +4,9 @@ Functional tests for the CLI tools
 
 from __future__ import print_function
 
+import re
+from functools import partial
+
 import pytest
 
 from clitools import CliApp
@@ -62,8 +65,24 @@ def gen_test_case(args, out=None, err=None, success=True):
     return (args, (out, err, success))
 
 
+def match_pattern(pattern):
+    def _match_pattern(pattern, s):
+        return bool(re.match(pattern, s, re.DOTALL))
+    return partial(_match_pattern, pattern)
+
+
 @pytest.mark.parametrize('args,result', [
-    gen_test_case([], success=False),  # no args -> invalid usage
+    ## todo: we need to test that invocation without arguments
+    ## prints the command help, instead of an exception traceback..
+    gen_test_case(
+        [], out='',
+        err=match_pattern('.*'.join(re.escape(l) for l in [
+            '', 'usage: cli-app [-h]',
+            '{',  '}', '...',
+            'cli-app: error: too few arguments', ''
+        ])),
+        success=False),  # no args -> invalid usage
+
     gen_test_case(['--help'], success=True),  # --help is ok
     gen_test_case(['help'], success=False),  # does not exist by default
 
@@ -146,9 +165,15 @@ def test_simple_script_internal(sample_script, args, result, capsys):
         assert return_code != 0
 
     if exp_out is not None:
-        assert stdout == exp_out
+        if callable(exp_out):
+            assert exp_out(stdout)
+        else:
+            assert stdout == exp_out
     if exp_err is not None:
-        assert stderr == exp_err
+        if callable(exp_err):
+            assert exp_err(stderr)
+        else:
+            assert stderr == exp_err
 
 
 def test_make_sure_we_clean_default_args(sample_script, capsys):
