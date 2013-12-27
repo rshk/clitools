@@ -177,6 +177,8 @@ def test_simple_script_internal(sample_script, args, result, capsys):
 
 
 def test_make_sure_we_clean_default_args(sample_script, capsys):
+    ## todo: we have more cleanup + tests to do!
+
     cli = CliApp()
 
     @cli.command
@@ -187,10 +189,10 @@ def test_make_sure_we_clean_default_args(sample_script, capsys):
         print('bbb: {0}'.format(bbb))
         print('ccc: {0}'.format(ccc))
 
-    cmd_with_explicit_args()
-    out, err = capsys.readouterr()
-    assert out == 'aaa: spam\nbbb: 100\nccc: example\n'
-
     cli.run(['cmd_with_explicit_args', '--aaa=AAA'])
     out, err = capsys.readouterr()
     assert out == 'aaa: AAA\nbbb: 100\nccc: example\n'
+
+    cmd_with_explicit_args()
+    out, err = capsys.readouterr()
+    assert out == 'aaa: spam\nbbb: 100\nccc: example\n'

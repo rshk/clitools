@@ -48,7 +48,7 @@ class Command(object):
         for argname in self.func_info['positional_args']:
             args.append(getattr(parsed_args, argname))
 
-        for argname, default in self.func_info['keyword_args'].iteritems():
+        for argname, default in self.func_info['keyword_args']:
             kwargs[argname] = getattr(parsed_args, argname, default)
 
         return self.func(*args, **kwargs)
@@ -121,7 +121,7 @@ class CliApp(object):
 
         ## Process optional keyword arguments
         func_new_defaults = []
-        for argname, argvalue in func_info['keyword_args'].iteritems():
+        for argname, argvalue in func_info['keyword_args']:
             if isinstance(argvalue, self.arg):
                 ## We already have args / kwargs for this argument
                 a = (['--' + argname] + list(argvalue.args))
@@ -182,7 +182,7 @@ class CliApp(object):
 
         kwargs_names = argspec.args[akw_limit:]
         assert len(kwargs_names) == len(arg_defaults)
-        info['keyword_args'] = dict(zip(kwargs_names, arg_defaults))
+        info['keyword_args'] = zip(kwargs_names, arg_defaults)
 
         return info
 

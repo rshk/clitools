@@ -37,6 +37,10 @@ def test_arg_from_free_value():
 
 
 def generate_analyze_function_params():
+    """
+    Generate parameters for testing the function analysis
+    """
+
     def func():
         pass
 
@@ -49,7 +53,7 @@ def generate_analyze_function_params():
         'kwargs_name': None,
         'varargs_name': None,
         'positional_args': [],
-        'keyword_args': {},
+        'keyword_args': [],
     }
 
     def func(aaa, bbb, ccc):
@@ -64,7 +68,7 @@ def generate_analyze_function_params():
         'kwargs_name': None,
         'varargs_name': None,
         'positional_args': ['aaa', 'bbb', 'ccc'],
-        'keyword_args': {},
+        'keyword_args': [],
     }
 
     def func(aaa, bbb, ccc, ddd='spam', eee='eggs'):
@@ -79,7 +83,7 @@ def generate_analyze_function_params():
         'kwargs_name': None,
         'varargs_name': None,
         'positional_args': ['aaa', 'bbb', 'ccc'],
-        'keyword_args': {'ddd': 'spam', 'eee': 'eggs'},
+        'keyword_args': [('ddd', 'spam'), ('eee', 'eggs')],
     }
 
     def func(aa, bb='hello', *args):
@@ -94,7 +98,7 @@ def generate_analyze_function_params():
         'kwargs_name': None,
         'varargs_name': 'args',
         'positional_args': ['aa'],
-        'keyword_args': {'bb': 'hello'},
+        'keyword_args': [('bb', 'hello')],
     }
 
     def func(name='hello'):
@@ -109,7 +113,7 @@ def generate_analyze_function_params():
         'kwargs_name': None,
         'varargs_name': None,
         'positional_args': [],
-        'keyword_args': {'name': 'hello'},
+        'keyword_args': [('name', 'hello')],
     }
 
     def func(arg1, arg2, kwa1='kwv1', kwa2='kwv2', *args, **kwargs):
@@ -125,7 +129,7 @@ def generate_analyze_function_params():
         'kwargs_name': 'kwargs',
         'varargs_name': 'args',
         'positional_args': ['arg1', 'arg2'],
-        'keyword_args': {'kwa1': 'kwv1', 'kwa2': 'kwv2'},
+        'keyword_args': [('kwa1', 'kwv1'), ('kwa2', 'kwv2')],
     }
 
     def func(arg1, arg2, kwa1='kwv1', kwa2='kwv2', *args, **kwargs):
@@ -143,7 +147,7 @@ def generate_analyze_function_params():
         'kwargs_name': 'kwargs',
         'varargs_name': 'args',
         'positional_args': ['arg1', 'arg2'],
-        'keyword_args': {'kwa1': 'kwv1', 'kwa2': 'kwv2'},
+        'keyword_args': [('kwa1', 'kwv1'), ('kwa2', 'kwv2')],
     }
 
 
@@ -163,7 +167,7 @@ def test_function_registration():
         pass
 
     func_info = cli._analyze_function(hello)
-    assert func_info['keyword_args'] == {'name': 'world'}
+    assert func_info['keyword_args'] == [('name', 'world')]
 
     a, kw = cli._arg_from_free_value('name', 'world')
     assert a == ('--name',)
