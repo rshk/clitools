@@ -26,7 +26,7 @@ class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
         self.test_args = [
-            '--ignore=build',
+            # '--ignore=build',
             '--pep8',
             '--verbose',
             '--cov=clitools',
