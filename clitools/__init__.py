@@ -22,6 +22,7 @@ Example usage::
 
 import argparse
 import logging
+import sys
 
 
 __version__ = '0.4a1'  # sync with setup.py!
@@ -249,4 +250,12 @@ class CliApp(object):
     def run(self, args=None):
         """Handle running from the command line"""
         parsed_args = self.parser.parse_args(args)
+        function = getattr(parsed_args, 'func', None)
+
+        if function is None:
+            ## Emulate Python2 behavior..
+            self.parser.print_help(sys.stderr)
+            sys.exit(2)
+
+        # function = parsed_args.func
         return parsed_args.func(parsed_args)
