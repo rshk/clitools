@@ -71,16 +71,21 @@ def match_pattern(pattern):
     return partial(_match_pattern, pattern)
 
 
+def fuzzy_match(chunks):
+    """Make sure text contains all chunks in the given order"""
+    return match_pattern('.*'.join(re.escape(l) for l in chunks))
+
+
 @pytest.mark.parametrize('args,result', [
     ## todo: we need to test that invocation without arguments
     ## prints the command help, instead of an exception traceback..
     gen_test_case(
-        [], out='',
-        err=match_pattern('.*'.join(re.escape(l) for l in [
+        [],
+        err=fuzzy_match([
             '', 'usage: cli-app [-h]',
-            '{',  '}', '...',
-            'cli-app: error: too few arguments', ''
-        ])),
+            # 'cli-app: error: too few arguments',
+            '',
+        ]),
         success=False),  # no args -> invalid usage
 
     gen_test_case(['--help'], success=True),  # --help is ok
@@ -102,10 +107,14 @@ def match_pattern(pattern):
 
     gen_test_case(
         ['hello_optional_name', '--help'],
-        out=u'usage: cli-app hello_optional_name [-h] [--name NAME]\n\n'
-        'optional arguments:\n'
-        '  -h, --help   show this help message and exit\n'
-        '  --name NAME\n'),
+        out=fuzzy_match([
+            u'',
+            u'usage: cli-app hello_optional_name [-h] [--name NAME]',
+            u'optional arguments:',
+            u'-h, --help', u'show this help message and exit',
+            u'--name', u'NAME',
+            u''
+        ])),
     gen_test_case(['hello_optional_name'], out='Hello, world!\n'),
     gen_test_case(['hello_optional_name', '--name', 'Python'],
                   out='Hello, Python!\n'),
