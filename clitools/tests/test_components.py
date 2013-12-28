@@ -176,3 +176,42 @@ def test_function_registration():
     subparser = cli._register_command(hello)
     assert subparser.get_default('func').func is hello
     assert subparser.get_default('name') == 'world'
+
+
+def test_split_function_doc():
+    from clitools import split_function_doc, extract_arguments_info
+
+    doc = (
+        'My example function\n'
+        ':param name1: Arg1 doc\n'
+        ':param str name2: Arg2 doc\n'
+        ':param name3: Arg3 doc\n'
+        ':type name3: int\n')
+
+    splitted = list(split_function_doc(doc))
+    assert splitted == [
+        (None, 'My example function'),
+        (('param', 'name1'), 'Arg1 doc'),
+        (('param', 'str', 'name2'), 'Arg2 doc'),
+        (('param', 'name3'), 'Arg3 doc'),
+        (('type', 'name3'), 'int')
+    ]
+
+    args_info = extract_arguments_info(doc)
+    assert args_info == {
+        'function_help': 'My example function\n',
+        'params_help': {
+            'name1': {
+                'help': 'Arg1 doc',
+            },
+            'name2': {
+                'help': 'Arg2 doc',
+                'type': 'str',
+            },
+            'name3': {
+                'help': 'Arg3 doc',
+                'type': 'int',
+            },
+        }
+    }
+    pass

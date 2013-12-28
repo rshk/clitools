@@ -259,3 +259,87 @@ class CliApp(object):
 
         # function = parsed_args.func
         return parsed_args.func(parsed_args)
+
+
+## Utility methods
+##----------------------------------------
+
+def split_function_doc(doc):
+    """
+    Performs a very simple splitting of a function documentation:
+    - separate blocks starting with :name from the rest of the
+      function documentation
+
+    Note: this function expects the passed-in docstring
+          to be already cleaned, usually via pydoc.getdoc().
+
+    :yields: two-tuples (block_info, block_data).
+        - block info is a tuple of strings describing the workds
+          between the first two colons, or None
+        - block data is the block data without any prefix
+    """
+
+    def tokenize_blocks(lines):
+        ## We need to loop until we find a line starting with :
+        ## or the end of the docstring.
+        buf = []
+        for line in lines:
+            if line.startswith(':'):
+                if len(buf):
+                    yield buf
+                    buf = []
+            buf.append(line)
+        if len(buf):
+            yield buf
+
+    for block in tokenize_blocks(doc.splitlines()):
+        block_data = '\n'.join(block).strip()
+        if block_data.startswith(':'):
+            _, args, block_data = block_data.split(':', 2)
+            block_info = tuple(args.split())
+
+        else:
+            block_info = None
+        yield block_info, block_data.strip()
+
+
+def extract_arguments_info(doc):
+    from collections import defaultdict
+
+    func_doc = []
+    args_doc = defaultdict(dict)
+
+    for block_info, block_data in split_function_doc(doc):
+        if block_info is None:
+            func_doc.append(block_data)
+        else:
+            block_type = block_info[0]
+
+            # :param <type> <name>: <doc>
+            # :param <name>: <doc>
+            # :type <name>: <type>
+
+            if block_type in ('param', 'type'):
+                if block_type == 'param' and len(block_info) == 3:
+                    p_type, p_name = block_info[1:3]
+                    p_help = block_data
+                    args_doc[p_name]['type'] = p_type
+                    args_doc[p_name]['help'] = p_help
+
+                elif block_type == 'param' and len(block_info) == 2:
+                    p_name = block_info[1]
+                    p_help = block_data
+                    args_doc[p_name]['help'] = p_help
+
+                elif block_type == 'type' and len(block_info) == 2:
+                    p_name = block_info[1]
+                    p_type = block_data
+                    args_doc[p_name]['type'] = p_type
+
+                else:
+                    raise ValueError("Wrong block information")
+
+    return {
+        'function_help': '\n'.join(func_doc).strip() + '\n',
+        'params_help': dict(args_doc),
+    }
