@@ -25,7 +25,7 @@ import logging
 import sys
 
 
-__version__ = '0.4a1'  # sync with setup.py!
+__version__ = '0.4a2'  # sync with setup.py!
 
 
 logger = logging.getLogger('clitools')
