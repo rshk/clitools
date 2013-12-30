@@ -214,4 +214,3 @@ def test_split_function_doc():
             },
         }
     }
-    pass

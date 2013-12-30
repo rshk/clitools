@@ -304,6 +304,30 @@ def split_function_doc(doc):
 
 
 def extract_arguments_info(doc):
+    """
+    Extract (organized) arguments information from a docstring.
+
+    This will extract all the :param: and :type: arguments
+    from the function docstring and return them in a dictionary,
+    along with function docstring.
+
+    >>> extract_arguments_info('''
+    ... My example function.
+    ...
+    ... :param spam: Some spam argument
+    ... :type spam: str
+    ... :param int eggs: Some eggs argument
+    ... :param bacon: Yummy!
+    ... ''') == {
+    ...     'function_help': 'My example function.\\n',
+    ...     'params_help': {
+    ...         'spam': {'help': 'Some spam argument', 'type': 'str'},
+    ...         'eggs': {'help': 'Some eggs argument', 'type': 'int'},
+    ...         'bacon': {'help': 'Yummy!'}
+    ...     }
+    ... }
+    True
+    """
     from collections import defaultdict
 
     func_doc = []
