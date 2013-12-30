@@ -3,4 +3,4 @@
 # To install requirements:
 # pip install tox pytest pytest-pep8 pytest-cov
 
-py.test --ignore=build --pep8 -v --cov=clitools --cov-report=term-missing clitools "$@"
+py.test --ignore=build --pep8 -v --cov=clitools --cov-report=term-missing --doctest-modules clitools "$@"
